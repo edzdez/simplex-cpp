@@ -1,6 +1,7 @@
 #include "LPResults.h"
 
 #include <iostream>
+#include <stdexcept>
 
 #include <eigen3/Eigen/Core>
 
@@ -8,10 +9,19 @@
 
 LPResults::LPResults(const LPModel &model, const Eigen::MatrixXd &finalTableau)
 {
-    computeAnswer(finalTableau, model.nConstraints, model.nDecisionVars, 0, decisionValues);
-    computeAnswer(finalTableau, model.nConstraints, model.nConstraints, model.nDecisionVars, slackValues);
-    computeSensitivity(finalTableau, model.nDecisionVars, 0, reducedCost);
-    computeSensitivity(finalTableau, model.nConstraints, model.nDecisionVars, shadowPrice);
+    if (model.type == LPModel::Type::MAX)
+    {
+        computeBasicValue(finalTableau, model.nConstraints, model.nDecisionVars, 0, decisionValues);
+        computeBasicValue(finalTableau, model.nConstraints, model.nConstraints, model.nDecisionVars, slackValues);
+        computeFromIndicators(finalTableau, model.nDecisionVars, 0, reducedCost);
+        computeFromIndicators(finalTableau, model.nConstraints, model.nDecisionVars, shadowPrice);
+    }
+    else if (model.type == LPModel::Type::MIN)
+    {
+        computeFromIndicators(finalTableau, model.nDecisionVars, model.nConstraints, decisionValues);
+    }
+    else
+        throw std::runtime_error("invalid model type");
 
     finalResult = finalTableau.coeff(finalTableau.rows() - 1, finalTableau.cols() - 1);
 }
@@ -39,8 +49,8 @@ auto LPResults::printResults() const -> void
     std::cout << "================================================\n\n";
 }
 
-auto LPResults::computeAnswer(const Eigen::MatrixXd &finalTableau, Eigen::Index nConstraints, Eigen::Index size,
-                              Eigen::Index offset, Eigen::RowVectorXd &param) -> void
+auto LPResults::computeBasicValue(const Eigen::MatrixXd &finalTableau, Eigen::Index nConstraints, Eigen::Index size,
+                                  Eigen::Index offset, Eigen::RowVectorXd &param) -> void
 {
     param = Eigen::VectorXd(size);
 
@@ -64,8 +74,8 @@ auto LPResults::computeAnswer(const Eigen::MatrixXd &finalTableau, Eigen::Index 
     }
 }
 
-auto LPResults::computeSensitivity(const Eigen::MatrixXd &finalTableau, const Eigen::Index size,
-                                   const Eigen::Index offset, Eigen::RowVectorXd &param) -> void
+auto LPResults::computeFromIndicators(const Eigen::MatrixXd &finalTableau, long size, long offset,
+                                      Eigen::RowVectorXd &param) -> void
 {
     param = Eigen::VectorXd(size);
     auto objectiveFunctionIdx = finalTableau.rows() - 1;

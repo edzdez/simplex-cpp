@@ -2,6 +2,7 @@
 #define LP_SOLVER_LPRESULTS_H
 
 #include <iostream>
+#include <stdexcept>
 
 #include <eigen3/Eigen/Core>
 
@@ -20,10 +21,10 @@ struct LPResults
     auto printResults() const -> void;
 
   private:
-    static auto computeAnswer(const Eigen::MatrixXd &finalTableau, Eigen::Index nConstraints, Eigen::Index size,
-                              Eigen::Index offset, Eigen::RowVectorXd &param) -> void;
-    static auto computeSensitivity(const Eigen::MatrixXd &finalTableau, Eigen::Index size, Eigen::Index offset,
-                                   Eigen::RowVectorXd &param) -> void;
+    static auto computeBasicValue(const Eigen::MatrixXd &finalTableau, Eigen::Index nConstraints, Eigen::Index size,
+                                  Eigen::Index offset, Eigen::RowVectorXd &param) -> void;
+    static auto computeFromIndicators(const Eigen::MatrixXd &finalTableau, Eigen::Index size, Eigen::Index offset,
+                                      Eigen::RowVectorXd &param) -> void;
 };
 
 #endif // LP_SOLVER_LPRESULTS_H

@@ -29,7 +29,7 @@ auto MaxSolver::populateConstraints(const LPModel &model, Eigen::MatrixXd &initi
         auto rowIt = initialTableau.row(i).begin();
 
         // copy the coefficients
-        rowIt = std::copy(constraints[i].cbegin(), constraints[i].cend() - 1, rowIt);
+        rowIt = std::copy(constraints.row(i).cbegin(), constraints.row(i).cend() - 1, rowIt);
 
         // fill in slackValues values
         for (Eigen::Index s = 0; s < nSlack; ++s)
@@ -39,7 +39,7 @@ auto MaxSolver::populateConstraints(const LPModel &model, Eigen::MatrixXd &initi
         *(rowIt++) = 0;
 
         // fill in rhs value
-        *rowIt = constraints[i][model.nDecisionVars];
+        *rowIt = constraints.coeff(i, model.nDecisionVars);
     }
 }
 
@@ -47,14 +47,13 @@ auto MaxSolver::populateObjectiveFunction(const LPModel &model, Eigen::MatrixXd 
 {
     const auto nSlack = model.nConstraints;
 
-    auto objectiveFunctionFrom = model.objectiveFunction;
+    auto objectiveFunctionFrom = model.objectiveFunction * -1;
     auto objectiveFunctionIt = initialTableau.row(nSlack).begin();
 
     // copy the opposite of the coefficients
-    objectiveFunctionFrom *= -1;
     objectiveFunctionIt = std::copy(objectiveFunctionFrom.cbegin(), objectiveFunctionFrom.cend(), objectiveFunctionIt);
 
-    // slackValues isn't part of the objectiveFunction
+    // slackValues aren't part of the objectiveFunction
     for (auto i = nSlack - 1; i >= 0; --i)
         *(objectiveFunctionIt++) = 0.;
 

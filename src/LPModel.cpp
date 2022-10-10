@@ -27,7 +27,7 @@ LPModel::LPModel(const toml::table &tbl)
 
     auto constraintList = tbl["constraints"]["coefficients"].as_array()->cbegin();
     auto rhsList = tbl["constraints"]["rhs"].as_array()->cbegin();
-    constraints = std::vector(nConstraints, Eigen::VectorXd(nDecisionVars + 1));
+    constraints = Eigen::MatrixXd(nConstraints, nDecisionVars + 1);
 
     for (Eigen::Index constraintIdx = 0; constraintIdx < nConstraints; ++constraintIdx)
     {
@@ -35,11 +35,13 @@ LPModel::LPModel(const toml::table &tbl)
         for (Eigen::Index coeffIdx = 0; coeffIdx < nDecisionVars; ++coeffIdx)
         {
             const auto coeff = *(constraint++)->value<double>();
-            constraints[constraintIdx][coeffIdx] = coeff;
+            auto *ref = &constraints.coeffRef(constraintIdx, coeffIdx);
+            *ref = coeff;
         }
 
         const auto rhs = *(rhsList++)->value<double>();
-        constraints[constraintIdx][nDecisionVars] = rhs;
+        auto *ref = &constraints.coeffRef(constraintIdx, nDecisionVars);
+        *ref = rhs;
     }
 
     auto operations = tbl["constraints"]["operations"].as_array();

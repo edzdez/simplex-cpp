@@ -29,7 +29,7 @@ struct LPModel
     Eigen::Index nConstraints;
 
     Eigen::VectorXd objectiveFunction;
-    std::vector<Eigen::VectorXd> constraints;
+    Eigen::MatrixXd constraints;
     std::vector<Op> constraintOperators;
 
     explicit LPModel(const toml::table &tbl);
