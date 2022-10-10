@@ -11,19 +11,6 @@
 Solver::Solver(const LPModel &model)
     : m_model(model)
 {
-    const auto nSlack = model.nConstraints;
-    Eigen::MatrixXd initialTableau(model.nConstraints + 1, model.nDecisionVars + nSlack + 2);
-
-    populateConstraints(model, initialTableau);
-    populateObjectiveFunction(model, initialTableau);
-
-    std::cout << "Initial Tableau:\n";
-    std::cout << initialTableau << '\n' << '\n';
-
-    if (model.type == LPModel::Type::MIN)
-        findDual(model, initialTableau);
-
-    m_tableau = std::move(initialTableau);
 }
 
 auto Solver::tableau() const -> Eigen::MatrixXd
@@ -39,6 +26,9 @@ auto Solver::isSolved() const -> bool
 
 auto Solver::solve() -> LPResults
 {
+    std::cout << "Initial Tableau:\n";
+    std::cout << m_tableau << '\n' << '\n';
+
     // TODO: Find a way to detect if it converges
     bool solved = false;
     for (; m_steps < 10; ++m_steps)
@@ -72,57 +62,6 @@ auto Solver::solveStep() -> void
     std::cout << "Pivoting on {" << row << ", " << col << "}\n";
 
     makeBasic(row, col);
-}
-
-auto Solver::populateConstraints(const LPModel &model, Eigen::MatrixXd &initialTableau) -> void
-{
-    const auto nSlack = model.nConstraints;
-    const auto &constraints = model.constraints;
-
-    for (Eigen::Index i = 0; i < model.nConstraints; ++i)
-    {
-        auto rowIt = initialTableau.row(i).begin();
-
-        // copy the coefficients
-        rowIt = std::copy(constraints[i].cbegin(), constraints[i].cend() - 1, rowIt);
-
-        // fill in slackValues values
-        for (Eigen::Index s = 0; s < nSlack; ++s)
-            *(rowIt++) = s == i ? static_cast<double>(model.constraintOperators[s]) : 0.;
-
-        // z should be 0
-        *(rowIt++) = 0;
-
-        // fill in rhs value
-        *rowIt = constraints[i][model.nDecisionVars];
-    }
-}
-
-auto Solver::populateObjectiveFunction(const LPModel &model, Eigen::MatrixXd &initialTableau) -> void
-{
-    const auto nSlack = model.nConstraints;
-
-    auto objectiveFunctionFrom = model.objectiveFunction;
-    auto objectiveFunctionIt = initialTableau.row(nSlack).begin();
-
-    // copy the opposite of the coefficients
-    objectiveFunctionFrom *= -1;
-    objectiveFunctionIt = std::copy(objectiveFunctionFrom.cbegin(), objectiveFunctionFrom.cend(), objectiveFunctionIt);
-
-    // slackValues isn't part of the objectiveFunction
-    for (auto i = nSlack - 1; i >= 0; --i)
-        *(objectiveFunctionIt++) = 0.;
-
-    // z should be 1
-    *(objectiveFunctionIt++) = 1.;
-
-    // value should be 0
-    *objectiveFunctionIt = 0.;
-}
-
-auto Solver::findDual(const LPModel &model, Eigen::MatrixXd &initialTableau) -> void
-{
-    throw std::runtime_error("not implemented");
 }
 
 auto Solver::findPivot() const -> std::pair<Eigen::Index, Eigen::Index>

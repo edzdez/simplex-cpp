@@ -20,11 +20,7 @@ class Solver
     auto solve() -> LPResults;
     auto solveStep() -> void;
 
-  private:
-    static auto populateConstraints(const LPModel &model, Eigen::MatrixXd &initialTableau) -> void;
-    static auto populateObjectiveFunction(const LPModel &model, Eigen::MatrixXd &initialTableau) -> void;
-    static auto findDual(const LPModel &model, Eigen::MatrixXd &initialTableau) -> void;
-
+  protected:
     [[nodiscard]] auto findPivot() const -> std::pair<Eigen::Index, Eigen::Index>;
     auto makeBasic(Eigen::Index row, Eigen::Index col) -> void;
     auto simplifyObjective() -> void;

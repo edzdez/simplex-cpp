@@ -1,0 +1,23 @@
+title = "Minimization Standard Form"
+type = "min"
+
+[decisionVariables]
+num = 2
+
+objectiveFunction = [
+    12, 16
+]
+
+[constraints]
+num = 2
+coefficients = [
+    [1, 2],
+    [1, 1],
+]
+operations = [
+    "gt",
+    "gt",
+]
+rhs = [
+    40, 30
+]
