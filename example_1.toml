@@ -1,0 +1,24 @@
+title = "Example 1"
+
+[decisionVariables]
+num = 3
+
+objectiveFunction = [
+    2, 3, 5,
+]
+
+[constraints]
+num = 3
+coefficients = [
+    [2, 2, 1],
+    [1, 1, 3],
+    [4, 2, 5],
+]
+operations = [
+    "lt",
+    "lt",
+    "lt",
+]
+rhs = [
+    60, 40, 80,
+]

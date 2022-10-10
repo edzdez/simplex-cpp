@@ -1,5 +1,7 @@
 #include "LPResults.h"
 
+#include <iostream>
+
 #include <eigen3/Eigen/Core>
 
 #include "LPModel.h"
@@ -12,6 +14,29 @@ LPResults::LPResults(const LPModel &model, const Eigen::MatrixXd &finalTableau)
     computeSensitivity(finalTableau, model.nConstraints, model.nDecisionVars, shadowPrice);
 
     finalResult = finalTableau.coeff(finalTableau.rows() - 1, finalTableau.cols() - 1);
+}
+
+auto LPResults::printResults() const -> void
+{
+    std::cout << "================================================\n\n";
+
+    std::cout << "Answer Report:\n";
+    std::cout << "Objective Value: " << finalResult << "\n\n";
+
+    std::cout << "Decision Values:\n";
+    std::cout << decisionValues << "\n\n";
+
+    std::cout << "Slack Values:\n";
+    std::cout << slackValues << "\n\n";
+
+    std::cout << "Sensitivity Report:\n";
+    std::cout << "Reduced Cost:\n";
+    std::cout << reducedCost << "\n\n";
+
+    std::cout << "Shadow Price:\n";
+    std::cout << shadowPrice << "\n\n";
+
+    std::cout << "================================================\n\n";
 }
 
 auto LPResults::computeAnswer(const Eigen::MatrixXd &finalTableau, Eigen::Index nConstraints, Eigen::Index size,

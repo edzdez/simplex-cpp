@@ -1,54 +1,31 @@
+#include "toml.hpp"
+
 #include "LPModel.h"
 #include "Solver.h"
 
-auto main() -> int
+auto main(int argc, char **argv) -> int
 {
-    LPModel model;
-    model.nDecisionVars = 3;
-    model.nConstraints = 3;
+    if (argc != 2)
+    {
+        std::cout << "Usage: " << argv[0] << " <filename>\n";
+        return EXIT_FAILURE;
+    }
 
-    model.objectiveFunction = Eigen::Vector3d(2., 3., 5.);
+    toml::table tbl;
+    try
+    {
+        tbl = toml::parse_file(argv[1]);
+    }
+    catch (const toml::parse_error &err)
+    {
+        std::cout << "Failed to parse:\n" << err << '\n';
+        return EXIT_FAILURE;
+    }
 
-    model.constraints = std::vector(3, Eigen::VectorXd(4));
-    model.constraintOperators = std::vector<LPModel::Op>(3);
-
-    model.constraints[0][0] = 2.;
-    model.constraints[0][1] = 2.;
-    model.constraints[0][2] = 1.;
-    model.constraints[0][3] = 60.;
-    model.constraintOperators[0] = LPModel::Op::LT;
-
-    model.constraints[1][0] = 1.;
-    model.constraints[1][1] = 1.;
-    model.constraints[1][2] = 3.;
-    model.constraints[1][3] = 40.;
-    model.constraintOperators[1] = LPModel::Op::LT;
-
-    model.constraints[2][0] = 4.;
-    model.constraints[2][1] = 2.;
-    model.constraints[2][2] = 5.;
-    model.constraints[2][3] = 80.;
-    model.constraintOperators[2] = LPModel::Op::LT;
-
+    auto model = LPModel(tbl);
     auto solver = Solver(model);
-
     auto results = solver.solve();
+    results.printResults();
 
-    std::cout << "================================================\n\n";
-
-    std::cout << "Answer Report:\n";
-    std::cout << "Objective Value: " << results.finalResult << "\n\n";
-
-    std::cout << "Decision Values:\n";
-    std::cout << results.decisionValues << "\n\n";
-
-    std::cout << "Slack Values:\n";
-    std::cout << results.slackValues << "\n\n";
-
-    std::cout << "Sensitivity Report:\n";
-    std::cout << "Reduced Cost:\n";
-    std::cout << results.reducedCost << "\n\n";
-
-    std::cout << "Shadow Price:\n";
-    std::cout << results.shadowPrice << "\n\n";
+    return EXIT_SUCCESS;
 }

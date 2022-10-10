@@ -1,6 +1,8 @@
 #ifndef LP_SOLVER_LPRESULTS_H
 #define LP_SOLVER_LPRESULTS_H
 
+#include <iostream>
+
 #include <eigen3/Eigen/Core>
 
 #include "LPModel.h"
@@ -15,6 +17,7 @@ struct LPResults
     double finalResult;
 
     LPResults(const LPModel &model, const Eigen::MatrixXd &finalTableau);
+    auto printResults() const -> void;
 
   private:
     static auto computeAnswer(const Eigen::MatrixXd &finalTableau, Eigen::Index nConstraints, Eigen::Index size,
