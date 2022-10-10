@@ -5,19 +5,21 @@ type = "min"
 num = 2
 
 objectiveFunction = [
-    12, 16
+    60, 50
 ]
 
 [constraints]
-num = 2
+num = 3
 coefficients = [
-    [1, 2],
-    [1, 1],
+    [8, 16],
+    [60, 40],
+    [2, 2],
 ]
 operations = [
     "gt",
     "gt",
+    "gt",
 ]
 rhs = [
-    40, 30
+    200, 960, 40
 ]

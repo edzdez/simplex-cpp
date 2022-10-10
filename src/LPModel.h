@@ -23,6 +23,7 @@ struct LPModel
         GT = -1,
     };
 
+    bool isDual{false};
     Type type;
 
     Eigen::Index nDecisionVars;
@@ -32,7 +33,10 @@ struct LPModel
     Eigen::MatrixXd constraints;
     std::vector<Op> constraintOperators;
 
+    LPModel() = default;
     explicit LPModel(const toml::table &tbl);
+
+    [[nodiscard]] auto dual() const -> LPModel;
 };
 
 #endif // LP_SOLVER_LPMODEL_H

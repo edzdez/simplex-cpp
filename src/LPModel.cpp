@@ -1,5 +1,7 @@
 #include "LPModel.h"
 
+#include <iostream>
+
 #include <stdexcept>
 #include <string_view>
 #include <vector>
@@ -58,4 +60,33 @@ LPModel::LPModel(const toml::table &tbl)
 
         throw std::runtime_error("invalid operation");
     });
+}
+
+auto LPModel::dual() const -> LPModel
+{
+    auto model = LPModel();
+    model.isDual = true;
+    model.type = type == Type::MAX ? Type::MIN : Type::MAX;
+    model.nDecisionVars = nConstraints;
+    model.nConstraints = nDecisionVars;
+
+    model.objectiveFunction = constraints.col(nDecisionVars);
+
+    model.constraints = Eigen::MatrixXd(nDecisionVars, nConstraints + 1);
+    const auto transposed = constraints.transpose().topRows(nDecisionVars);
+    for (Eigen::Index row = 0; row < transposed.rows(); ++row)
+    {
+        for (Eigen::Index col = 0; col < transposed.cols(); ++col)
+        {
+            auto *coeff = &model.constraints.coeffRef(row, col);
+            *coeff = transposed.coeff(row, col);
+        }
+    }
+    model.constraints.col(model.constraints.cols() - 1) = objectiveFunction;
+
+    model.constraintOperators = std::vector<Op>(nConstraints);
+    std::transform(constraintOperators.cbegin(), constraintOperators.cend(), model.constraintOperators.begin(),
+                   [](Op op) { return static_cast<Op>(-static_cast<int>(op)); });
+
+    return model;
 }

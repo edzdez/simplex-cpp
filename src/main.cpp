@@ -4,8 +4,6 @@
 #include "toml.hpp"
 
 #include "LPModel.h"
-#include "MaxSolver.h"
-#include "MinSolver.h"
 #include "Solver.h"
 
 auto main(int argc, char **argv) -> int
@@ -28,16 +26,9 @@ auto main(int argc, char **argv) -> int
     }
 
     auto model = LPModel(tbl);
+    auto solver = Solver(model);
 
-    std::unique_ptr<Solver> solver;
-    if (model.type == LPModel::Type::MAX)
-        solver = std::make_unique<MaxSolver>(model);
-    else if (model.type == LPModel::Type::MIN)
-        solver = std::make_unique<MinSolver>(model);
-    else
-        throw std::runtime_error("unknown solver");
-
-    auto results = solver->solve();
+    auto results = solver.solve();
     results.printResults();
 
     return EXIT_SUCCESS;

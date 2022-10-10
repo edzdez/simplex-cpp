@@ -9,8 +9,19 @@
 #include "LPResults.h"
 
 Solver::Solver(const LPModel &model)
-    : m_model(model)
 {
+    if (model.type == LPModel::Type::MAX)
+        m_model = model;
+    else
+        m_model = model.dual();
+
+    const auto nSlack = m_model.nConstraints;
+    Eigen::MatrixXd initialTableau(m_model.nConstraints + 1, m_model.nDecisionVars + nSlack + 2);
+
+    populateConstraints(m_model, initialTableau);
+    populateObjectiveFunction(m_model, initialTableau);
+
+    m_tableau = std::move(initialTableau);
 }
 
 auto Solver::tableau() const -> Eigen::MatrixXd
@@ -64,13 +75,59 @@ auto Solver::solveStep() -> void
     makeBasic(row, col);
 }
 
+auto Solver::populateConstraints(const LPModel &model, Eigen::MatrixXd &initialTableau) -> void
+{
+    const auto nSlack = model.nConstraints;
+    const auto &constraints = model.constraints;
+
+    for (Eigen::Index i = 0; i < model.nConstraints; ++i)
+    {
+        auto rowIt = initialTableau.row(i).begin();
+
+        // copy the coefficients
+        rowIt = std::copy(constraints.row(i).cbegin(), constraints.row(i).cend() - 1, rowIt);
+
+        // fill in slackValues values
+        for (Eigen::Index s = 0; s < nSlack; ++s)
+            *(rowIt++) = s == i ? static_cast<double>(model.constraintOperators[s]) : 0.;
+
+        // z should be 0
+        *(rowIt++) = 0;
+
+        // fill in rhs value
+        *rowIt = constraints.coeff(i, model.nDecisionVars);
+    }
+}
+
+auto Solver::populateObjectiveFunction(const LPModel &model, Eigen::MatrixXd &initialTableau) -> void
+{
+    const auto nSlack = model.nConstraints;
+
+    auto objectiveFunctionFrom = model.objectiveFunction * -1;
+    auto objectiveFunctionIt = initialTableau.row(nSlack).begin();
+
+    // copy the opposite of the coefficients
+    objectiveFunctionIt = std::copy(objectiveFunctionFrom.cbegin(), objectiveFunctionFrom.cend(), objectiveFunctionIt);
+
+    // slackValues aren't part of the objectiveFunction
+    for (auto i = nSlack - 1; i >= 0; --i)
+        *(objectiveFunctionIt++) = 0.;
+
+    // z should be 1
+    *(objectiveFunctionIt++) = 1.;
+
+    // value should be 0
+    *objectiveFunctionIt = 0.;
+}
+
 auto Solver::findPivot() const -> std::pair<Eigen::Index, Eigen::Index>
 {
     auto objectiveFunctionIt = m_tableau.row(m_tableau.rows() - 1).cbegin();
 
     // pivot column corresponds to the largest reduced cost coefficient
-    auto pivotCol = static_cast<Eigen::Index>(std::distance(
-        objectiveFunctionIt, std::min_element(objectiveFunctionIt, objectiveFunctionIt + m_model.nDecisionVars)));
+    const auto pivotCell = std::min_element(objectiveFunctionIt, objectiveFunctionIt + m_model.nDecisionVars);
+    std::cout << *pivotCell << '\n';
+    auto pivotCol = static_cast<Eigen::Index>(std::distance(objectiveFunctionIt, pivotCell));
 
     // pivot row corresponds to the row with the lowest quotient
     std::vector<double> quotients;

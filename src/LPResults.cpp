@@ -9,19 +9,17 @@
 
 LPResults::LPResults(const LPModel &model, const Eigen::MatrixXd &finalTableau)
 {
-    if (model.type == LPModel::Type::MAX)
+    if (!model.isDual)
     {
         computeBasicValue(finalTableau, model.nConstraints, model.nDecisionVars, 0, decisionValues);
         computeBasicValue(finalTableau, model.nConstraints, model.nConstraints, model.nDecisionVars, slackValues);
         computeFromIndicators(finalTableau, model.nDecisionVars, 0, reducedCost);
         computeFromIndicators(finalTableau, model.nConstraints, model.nDecisionVars, shadowPrice);
     }
-    else if (model.type == LPModel::Type::MIN)
-    {
-        computeFromIndicators(finalTableau, model.nDecisionVars, model.nConstraints, decisionValues);
-    }
     else
-        throw std::runtime_error("invalid model type");
+    {
+        computeFromIndicators(finalTableau, model.nConstraints, model.nDecisionVars, decisionValues);
+    }
 
     finalResult = finalTableau.coeff(finalTableau.rows() - 1, finalTableau.cols() - 1);
 }
