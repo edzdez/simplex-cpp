@@ -13,13 +13,13 @@ LPModel::LPModel(const toml::table &tbl)
     nConstraints = tbl["constraints"]["num"].as_integer()->get();
 
     auto objectiveFunctionArray = tbl["decisionVariables"]["objectiveFunction"].as_array();
-    objectiveFunction = Eigen::Vector3d(nDecisionVars);
+    objectiveFunction = Eigen::RowVectorXd(nDecisionVars);
     std::transform(objectiveFunctionArray->cbegin(), objectiveFunctionArray->cend(), objectiveFunction.begin(),
                    [](const toml::node &i) { return *i.value<double>(); });
 
     auto constraintList = tbl["constraints"]["coefficients"].as_array()->cbegin();
     auto rhsList = tbl["constraints"]["rhs"].as_array()->cbegin();
-    constraints = std::vector(3, Eigen::VectorXd(4));
+    constraints = std::vector(nConstraints, Eigen::VectorXd(nDecisionVars + 1));
 
     for (Eigen::Index constraintIdx = 0; constraintIdx < nConstraints; ++constraintIdx)
     {
