@@ -85,7 +85,7 @@ auto Solver::populateConstraints(const LPModel &model, Eigen::MatrixXd &initialT
 
         // fill in slackValues values
         for (Eigen::Index s = 0; s < nSlack; ++s)
-            *(rowIt++) = s == i ? 1. : 0.;
+            *(rowIt++) = s == i ? static_cast<double>(model.constraintOperators[s]) : 0.;
 
         // z should be 0
         *(rowIt++) = 0;
