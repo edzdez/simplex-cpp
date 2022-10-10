@@ -28,5 +28,23 @@ auto main() -> int
 
     auto solver = Solver(model);
 
-    solver.solve();
+    auto results = solver.solve();
+
+    std::cout << "================================================\n\n";
+
+    std::cout << "Answer Report:\n";
+    std::cout << "Objective Value: " << results.finalResult << "\n\n";
+
+    std::cout << "Decision Values:\n";
+    std::cout << results.decisionValues << "\n\n";
+
+    std::cout << "Slack Values:\n";
+    std::cout << results.slackValues << "\n\n";
+
+    std::cout << "Sensitivity Report:\n";
+    std::cout << "Reduced Cost:\n";
+    std::cout << results.reducedCost << "\n\n";
+
+    std::cout << "Shadow Price:\n";
+    std::cout << results.shadowPrice << "\n\n";
 }

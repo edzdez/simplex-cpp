@@ -6,6 +6,7 @@
 #include <eigen3/Eigen/Core>
 
 #include "LPModel.h"
+#include "LPResults.h"
 
 Solver::Solver(const LPModel &model)
     : m_model(model)
@@ -30,7 +31,7 @@ auto Solver::isSolved() const -> bool
     return std::none_of(m_tableau.row(i).cbegin(), m_tableau.row(i).cend(), [](const double val) { return val < 0.0; });
 }
 
-auto Solver::solve() -> void
+auto Solver::solve() -> LPResults
 {
     std::cout << "Initial Tableau:\n";
     std::cout << m_tableau << '\n' << '\n';
@@ -55,6 +56,8 @@ auto Solver::solve() -> void
         simplifyObjective();
         std::cout << "Final Tableau:\n";
         std::cout << m_tableau << '\n' << '\n';
+
+        return {m_model, m_tableau};
     }
     else
         throw std::runtime_error("did not converge after 10 steps");
@@ -80,7 +83,7 @@ auto Solver::populateConstraints(const LPModel &model, Eigen::MatrixXd &initialT
         // copy the coefficients
         rowIt = std::copy(constraints[i].cbegin(), constraints[i].cend() - 1, rowIt);
 
-        // fill in slack values
+        // fill in slackValues values
         for (Eigen::Index s = 0; s < nSlack; ++s)
             *(rowIt++) = s == i ? 1. : 0.;
 
@@ -104,7 +107,7 @@ auto Solver::populateObjectiveFunction(const LPModel &model, Eigen::MatrixXd &in
                    [](const double coeff) { return -coeff; });
     objectiveFunctionIt = std::copy(objectiveFunctionFrom.cbegin(), objectiveFunctionFrom.cend(), objectiveFunctionIt);
 
-    // slack isn't part of the objectiveFunction
+    // slackValues isn't part of the objectiveFunction
     for (auto i = nSlack - 1; i >= 0; --i)
         *(objectiveFunctionIt++) = 0.;
 

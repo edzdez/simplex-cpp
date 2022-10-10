@@ -7,6 +7,7 @@
 #include <eigen3/Eigen/Core>
 
 #include "LPModel.h"
+#include "LPResults.h"
 
 class Solver
 {
@@ -16,7 +17,7 @@ class Solver
     [[nodiscard]] auto tableau() const -> Eigen::MatrixXd;
     [[nodiscard]] auto isSolved() const -> bool;
 
-    auto solve() -> void;
+    auto solve() -> LPResults;
     auto solveStep() -> void;
 
   private:
