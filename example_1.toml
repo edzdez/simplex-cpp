@@ -1,4 +1,5 @@
 title = "Example 1"
+type = "max"
 
 [decisionVariables]
 num = 3

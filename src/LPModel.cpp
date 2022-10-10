@@ -9,6 +9,14 @@
 
 LPModel::LPModel(const toml::table &tbl)
 {
+    auto typeStr = *tbl["type"].value<std::string_view>();
+    if (typeStr == "max")
+        type = Type::MAX;
+    else if (typeStr == "min")
+        type = Type::MIN;
+    else
+        throw std::runtime_error("invalid type");
+
     nDecisionVars = tbl["decisionVariables"]["num"].as_integer()->get();
     nConstraints = tbl["constraints"]["num"].as_integer()->get();
 

@@ -17,6 +17,12 @@ Solver::Solver(const LPModel &model)
     populateConstraints(model, initialTableau);
     populateObjectiveFunction(model, initialTableau);
 
+    std::cout << "Initial Tableau:\n";
+    std::cout << initialTableau << '\n' << '\n';
+
+    if (model.type == LPModel::Type::MIN)
+        findDual(model, initialTableau);
+
     m_tableau = std::move(initialTableau);
 }
 
@@ -33,9 +39,6 @@ auto Solver::isSolved() const -> bool
 
 auto Solver::solve() -> LPResults
 {
-    std::cout << "Initial Tableau:\n";
-    std::cout << m_tableau << '\n' << '\n';
-
     // TODO: Find a way to detect if it converges
     bool solved = false;
     for (; m_steps < 10; ++m_steps)
@@ -103,8 +106,7 @@ auto Solver::populateObjectiveFunction(const LPModel &model, Eigen::MatrixXd &in
     auto objectiveFunctionIt = initialTableau.row(nSlack).begin();
 
     // copy the opposite of the coefficients
-    std::transform(objectiveFunctionFrom.begin(), objectiveFunctionFrom.end(), objectiveFunctionFrom.begin(),
-                   [](const double coeff) { return -coeff; });
+    objectiveFunctionFrom *= -1;
     objectiveFunctionIt = std::copy(objectiveFunctionFrom.cbegin(), objectiveFunctionFrom.cend(), objectiveFunctionIt);
 
     // slackValues isn't part of the objectiveFunction
@@ -116,6 +118,11 @@ auto Solver::populateObjectiveFunction(const LPModel &model, Eigen::MatrixXd &in
 
     // value should be 0
     *objectiveFunctionIt = 0.;
+}
+
+auto Solver::findDual(const LPModel &model, Eigen::MatrixXd &initialTableau) -> void
+{
+    throw std::runtime_error("not implemented");
 }
 
 auto Solver::findPivot() const -> std::pair<Eigen::Index, Eigen::Index>
@@ -158,8 +165,8 @@ auto Solver::makeBasic(Eigen::Index row, Eigen::Index col) -> void
             continue;
 
         const auto a = rowIt->coeff(col);
-        std::transform(rowIt->cbegin(), rowIt->cend(), m_tableau.row(row).cbegin(), rowIt->begin(),
-                       [a, b](const double c, const double d) { return c * b - d * a; });
+        *rowIt *= b;
+        *rowIt -= a * m_tableau.row(row);
     }
 }
 
@@ -167,6 +174,5 @@ auto Solver::simplifyObjective() -> void
 {
     auto objectiveFunctionIt = m_tableau.rowwise().rbegin();
     const auto divisor = objectiveFunctionIt->coeff(m_model.nDecisionVars + m_model.nConstraints);
-    std::transform(objectiveFunctionIt->cbegin(), objectiveFunctionIt->cend(), objectiveFunctionIt->begin(),
-                   [divisor](const double coeff) { return coeff / divisor; });
+    *objectiveFunctionIt /= divisor;
 }

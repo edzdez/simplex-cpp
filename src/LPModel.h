@@ -10,12 +10,20 @@
 
 struct LPModel
 {
+    enum class Type : int
+    {
+        MIN = 0,
+        MAX = 1,
+    };
+
     enum class Op : int
     {
         LT = 1,
         EQ = 0,
         GT = -1,
     };
+
+    Type type;
 
     Eigen::Index nDecisionVars;
     Eigen::Index nConstraints;
