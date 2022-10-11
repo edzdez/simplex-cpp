@@ -127,7 +127,6 @@ auto Solver::findPivot() const -> std::pair<Eigen::Index, Eigen::Index>
 
     // pivot column corresponds to the largest reduced cost coefficient
     const auto pivotCell = std::min_element(objectiveFunctionIt, objectiveFunctionIt + m_model.nDecisionVars);
-    std::cout << *pivotCell << '\n';
     auto pivotCol = static_cast<Eigen::Index>(std::distance(objectiveFunctionIt, pivotCell));
 
     // pivot row corresponds to the row with the lowest quotient
