@@ -26,7 +26,7 @@ class Solver
 
     [[nodiscard]] auto findPivot() const -> std::pair<Eigen::Index, Eigen::Index>;
     auto makeBasic(Eigen::Index row, Eigen::Index col) -> void;
-    auto simplifyObjective() -> void;
+    auto simplify() -> void;
 
     LPModel m_model;
     Eigen::MatrixXd m_tableau;

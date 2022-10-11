@@ -19,6 +19,9 @@ LPResults::LPResults(const LPModel &model, const Eigen::MatrixXd &finalTableau)
     else
     {
         computeFromIndicators(finalTableau, model.nConstraints, model.nDecisionVars, decisionValues);
+        computeFromIndicators(finalTableau, model.nDecisionVars, 0, slackValues);
+        computeBasicValue(finalTableau, model.nConstraints, model.nConstraints, model.nDecisionVars, reducedCost);
+        computeBasicValue(finalTableau, model.nConstraints, model.nDecisionVars, 0, shadowPrice);
     }
 
     finalResult = finalTableau.coeff(finalTableau.rows() - 1, finalTableau.cols() - 1);
@@ -55,7 +58,7 @@ auto LPResults::computeBasicValue(const Eigen::MatrixXd &finalTableau, Eigen::In
     for (Eigen::Index col = 0; col < size; ++col)
     {
         int nonZero{};
-        for (Eigen::Index row = 0; row < nConstraints; ++row)
+        for (Eigen::Index row = 0; row < nConstraints + 1; ++row)
         {
             const auto coeff = finalTableau.coeff(row, col + offset);
             if (coeff != 0)

@@ -57,7 +57,7 @@ auto Solver::solve() -> LPResults
 
     if (solved)
     {
-        simplifyObjective();
+        simplify();
         std::cout << "Final Tableau:\n";
         std::cout << m_tableau << '\n' << '\n';
 
@@ -89,7 +89,8 @@ auto Solver::populateConstraints(const LPModel &model, Eigen::MatrixXd &initialT
 
         // fill in slackValues values
         for (Eigen::Index s = 0; s < nSlack; ++s)
-            *(rowIt++) = s == i ? static_cast<double>(model.constraintOperators[s]) : 0.;
+            //            *(rowIt++) = s == i ? static_cast<double>(model.constraintOperators[i]) : 0.;
+            *(rowIt++) = s == i ? 1.0 : 0.; // TODO: figure out how constraint operators work
 
         // z should be 0
         *(rowIt++) = 0;
@@ -166,9 +167,27 @@ auto Solver::makeBasic(Eigen::Index row, Eigen::Index col) -> void
     }
 }
 
-auto Solver::simplifyObjective() -> void
+auto Solver::simplify() -> void
 {
-    auto objectiveFunctionIt = m_tableau.rowwise().rbegin();
-    const auto divisor = objectiveFunctionIt->coeff(m_model.nDecisionVars + m_model.nConstraints);
-    *objectiveFunctionIt /= divisor;
+    //    auto objectiveFunctionIt = m_tableau.rowwise().rbegin();
+    //    const auto divisor = objectiveFunctionIt->coeff(m_model.nDecisionVars + m_model.nConstraints);
+    //    *objectiveFunctionIt /= divisor;
+
+    for (Eigen::Index col = 0; col < m_tableau.cols() - 1; ++col)
+    {
+        std::vector<Eigen::Index> nonZero;
+        for (Eigen::Index row = 0; row < m_model.nConstraints + 1; ++row)
+        {
+            const auto coeff = m_tableau.coeff(row, col);
+            if (coeff != 0)
+                nonZero.push_back(row);
+        }
+
+        // if the variable is basic, simplify the row
+        if (nonZero.size() == 1)
+        {
+            const auto row = *nonZero.cbegin();
+            m_tableau.row(row) /= m_tableau.coeff(row, col);
+        }
+    }
 }
