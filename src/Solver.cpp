@@ -40,7 +40,7 @@ auto Solver::solve() -> LPResults
     std::cout << "Initial Tableau:\n";
     std::cout << m_tableau << '\n' << '\n';
 
-    // TODO: Find a way to detect if it converges
+    // TODO: Find a way to detect if it doesn't converge
     bool solved = false;
     for (; m_steps < 10; ++m_steps)
     {
@@ -168,10 +168,6 @@ auto Solver::makeBasic(Eigen::Index row, Eigen::Index col) -> void
 
 auto Solver::simplify() -> void
 {
-    //    auto objectiveFunctionIt = m_tableau.rowwise().rbegin();
-    //    const auto divisor = objectiveFunctionIt->coeff(m_model.nDecisionVars + m_model.nConstraints);
-    //    *objectiveFunctionIt /= divisor;
-
     for (Eigen::Index col = 0; col < m_tableau.cols() - 1; ++col)
     {
         std::vector<Eigen::Index> nonZero;
